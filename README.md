@@ -5,6 +5,8 @@
 [![arXiv](https://img.shields.io/badge/arXiv-coming--soon-b31b1b)](https://arxiv.org)
 [![HuggingFace Dataset](https://img.shields.io/badge/HF-Dataset-yellow)](https://huggingface.co/datasets/ajinkya-awari/solomonoff-bench)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-43%20passing-brightgreen)](tests/)
+[![GitHub](https://img.shields.io/badge/GitHub-ajinkya--awari%2Fsolomonoff--bench-181717?logo=github)](https://github.com/ajinkya-awari/solomonoff-bench)
 
 ---
 
