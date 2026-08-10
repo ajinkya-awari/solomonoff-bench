@@ -1,66 +1,80 @@
 # CLAUDE.md — solomonoff-bench
 
-## What This Project Is
+## Stack and Commands
 
-Empirical benchmark measuring how many extra bits per symbol LLMs waste vs the theoretically optimal predictor (Solomonoff induction), as a function of Kolmogorov complexity. Week 1 metric: EL_gzip (gzip-normalized excess code length).
+**Repo:** `E:\application\MS CS\solomonoff-bench\` — installable Python package
 
-## Stack
+**Stack:** Python 3.10 · PyTorch · HuggingFace Transformers · gzip · ruff · pytest
 
-Python 3.10 · PyTorch ≥2.1 · HuggingFace Transformers ≥4.40 · gzip (stdlib) · ruff · pytest
+**Primary models:** `microsoft/Phi-3-mini-4k-instruct` + `meta-llama/Llama-3.2-3B-Instruct` on Kaggle T4
 
-Primary models: `meta-llama/Llama-3.2-3B-Instruct` + `microsoft/Phi-3-mini-4k-instruct` on Kaggle T4
-
-## Commands
-
+**Commands:**
 ```
-python -m pytest tests/ -v                           # full test suite
-python src/tm_simulator.py --validate                # TM unit tests
-python src/tokenizer_validator.py --model <name>     # tokenizer gate
-python src/scorer.py --validate-only --model <name>  # 5-prompt toy gate
-python src/scorer.py --model <name> --checkpoint-every 50
-python src/generate_sequences.py                     # build dataset
-ruff check src/ --fix                                # lint
+python -m pytest tests/ -v                          # run all 43 tests
+python -m solomonoff_bench.sequences.generate_sequences  # build 300-seq dataset
+python -m solomonoff_bench.benchmark --model <name> --dataset data/sequences_mvp.json --output results/
 ```
 
-## Architecture
+## Architecture (actual package structure)
 
 ```
-src/
-  tm_simulator.py       — binary TM, output-transducer convention, 200-symbol sequences
-  generate_sequences.py — 300 sequences (75 × 4 complexity levels), deduplication
-  tokenizer_validator.py — token ID collection, invalid-mass logging, renormalization
-  scorer.py             — EL_gzip computation, incremental gzip, logit extraction
-data/
-  sequences_mvp.json    — gitignored, never commit
-results/
-  raw_predictions.csv   — per-sequence model log-probs
-  el_gzip_results.csv   — final EL_gzip scores
-  figures/              — paper figures (PDF + PNG)
+src/solomonoff_bench/
+  sequences/
+    tm_simulator.py        — output-transducer TM, 200-symbol, 10K-step limit
+    generate_sequences.py  — 300 sequences, 4 levels (3-6 states), 75/level, deduplicated
+  models/
+    base_model.py          — abstract scorer + 5-prompt toy validation gate
+    tokenizer_validation.py — token IDs for "0"/"1" variants, invalid-mass logging
+    local_model.py         — direct logits scorer (NOT model.generate)
+  baselines/
+    gzip_baseline.py       — incremental gzip, negative-delta tracking
+    random_baseline.py     — P=0.5, H=1.0 bits/sym
+  metrics/
+    excess_loss.py         — EL_gzip = H(model) - H_gzip_incremental (NOT SG)
+  analysis/
+    plots.py               — Figure 1 (EL_gzip vs program_bits, bootstrap CI)
+    stats.py               — level_summary, minimum_viable_result_check
+    mock_results.py        — synthetic CSV for pipeline smoke testing
+  benchmark.py             — resumable runner, checkpoint every 50 seqs
+notebooks/
+  01_generate_sequences.ipynb
+  02_validate_tokenizers.ipynb
+  03_benchmark_local_kaggle.ipynb   ← run on Kaggle T4 for Day 3
+  04_analysis_and_plots.ipynb
 tests/
-  test_tm_simulator.py  — output-transducer unit tests
-notebooks/              — Kaggle inference notebooks
-docs/                   — PRDs, specs, sequences-schema.json
+  test_tm_simulator.py  — 20 tests (all passing)
+  test_baselines.py     — 13 tests (all passing)
+  test_metrics.py       — 10 tests (all passing)
+data/sequences_mvp.json             — gitignored, 300 seqs generated
+results/el_gzip_results.csv         — pending Kaggle run
+results/figures/fig1_mvp_el_gzip.png — generated after benchmark
 ```
 
-## Hard Rules — Never Change Without Asking
+## Implementation Status
 
-1. `h_gzip_incremental` formula in scorer.py — changing it invalidates all EL_gzip results
-2. Output-transducer emit logic in tm_simulator.py — changing it invalidates all sequences
-3. Tokenizer gate must run before any benchmark — never skip
-4. `outputs.logits[:, -1, :]` is the only valid logit extraction — never use `model.generate()`
-5. EL_gzip and SG are never described as the same metric anywhere in code or output
+| Day | Task | Status |
+|-----|------|--------|
+| 1 | TM simulator + 300 sequences | ✅ Done |
+| 2 | Baselines + tokenizer validation + scorer | ✅ Done |
+| 2+ | Analysis pipeline, notebooks, README | ✅ Done |
+| 3 | Kaggle T4 benchmark run | ⬜ NEXT — run 03_benchmark_local_kaggle.ipynb |
+| 4 | Figure 1 + minimum_viable_result_check | ⬜ After Day 3 results |
+| 5 | 4-page preprint on Overleaf | ⬜ |
+| 6–7 | AIXI Labs fellowship submission | ⬜ |
 
-## Week 1 Gotchas
+## Hard Rules — Never Violate
 
-- Sequences are ASCII strings of "0"/"1" — NOT packed binary, NOT numpy arrays
-- Discard (never truncate) TM runs that hit 10,000 transitions before 200 symbols
-- Log every negative gzip delta — never silently clamp to zero
-- Save invalid-token mass BEFORE renormalization — log it per model per run
-- If Llama 3.2 access blocked on Kaggle after 30 min, switch to Phi-3-mini immediately
-- Checkpoint results every 50 sequences — Kaggle sessions disconnect
+1. Output-transducer convention — emit WRITTEN symbol at every transition
+2. Sequences are ASCII "0"/"1" strings — NOT packed binary, NOT numpy arrays
+3. `h_gzip_incremental` formula only — never whole-string ratio
+4. Log every negative gzip delta — never silently clamp
+5. Save invalid-token mass BEFORE renormalization
+6. `outputs.logits[:, -1, :]` only — never `model.generate(output_scores=True)`
+7. 5-prompt toy gate must pass before full benchmark
+8. EL_gzip ≠ SG — never describe or plot as the same metric
+9. Week 1 outputs never claim CTW-normalized Solomonoff Gap
 
-## Planning Files (read-only reference)
+## Planning Files (read-only)
 
-Full specs live in the portfolio planning folder — do not modify them from this repo:
 `E:\application\MS CS\portfolio-projects\00-solomonoff-llm\`
-Files to read before implementing: FINAL_VULNERABILITY_SCAN.md → DESIGN.md → CLAUDE_CODE_PROMPT.md → tasks/todo.md
+Read order: FINAL_VULNERABILITY_SCAN.md → DESIGN.md → CLAUDE_CODE_PROMPT.md → tasks/todo.md
