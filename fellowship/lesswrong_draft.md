@@ -88,7 +88,7 @@ If K* exists and is well-defined, it gives a formal, empirically grounded answer
 Everything is free and public:
 
 - Code + data: https://github.com/ajinkya-awari/solomonoff-bench
-- Paper source (NeurIPS 2025 format): https://github.com/ajinkya-awari/solomonoff-bench/blob/master/paper/main.tex
+- Paper source (NeurIPS 2026 format): https://github.com/ajinkya-awari/solomonoff-bench/blob/master/paper/main.tex
 - Runs on a free Kaggle T4 GPU notebook, zero API cost
 
 The full 4-page preprint is linked in the repo. arXiv submission is in progress.
