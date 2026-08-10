@@ -350,7 +350,8 @@ failure mode more informative than a flat rejection.
 \textbf{Why CTW is necessary.}
 DEFLATE compression on 100-byte windows is near-perfect for short ASCII
 binary strings: the algorithm finds run-length and Huffman codes that
-reduce the incremental cost to near zero regardless of the sequence's
+reduce the incremental cost to a measured mean of 0.036~bits/sym
+(Section~\ref{sec:background}) regardless of the sequence's
 Kolmogorov complexity.
 CTW~\citep{willems1995ctw} produces per-symbol probability estimates
 with provable $O(\log n)$ redundancy, making it sensitive to the
