@@ -142,9 +142,10 @@ baseline:
   \texttt{EL\_gzip}(M, x) \;=\; H(M, x) - H_{\text{gzip}}^{\text{incr}}(x)
   \label{eq:elgzip}
 \end{equation}
-At 100-symbol windows, incremental gzip approaches zero bits per symbol
-on ASCII binary strings (DEFLATE trivially compresses short repetitive
-byte sequences), so \texttt{EL\_gzip} $\approx H(M, x)$ in practice.
+At 100-symbol windows, incremental gzip averages 0.036~bits/sym on
+these ASCII binary strings (174 of 600 sequence-model pairs produce a
+non-zero incremental cost; no negative deltas occur), so
+\texttt{EL\_gzip} $\approx H(M, x)$ in practice.
 The scale is: \texttt{EL\_gzip}~$= 0$ matches gzip;
 \texttt{EL\_gzip}~$= 1.0$ matches a fair-coin random predictor;
 \texttt{EL\_gzip}~$> 1.0$ is worse than random.
@@ -223,7 +224,7 @@ Negative deltas (where adding the suffix \emph{shrinks} the archive)
 are logged but never clamped; none occurred across 300 sequences.
 
 \textbf{Tokenizer validation gate.}
-Before any full run, $\hat{P}_M(0) + \hat{P}_M(1) \geq 0.60$ is verified
+Before any full run, $\hat{P}_M(0) + \hat{P}_M(1) \geq 0.01$ is verified
 on five held-out toy sequences.
 Both models clear this gate (valid binary mass: 65.4\%~for~3B,
 63.5\%~for~1.5B).
@@ -293,9 +294,14 @@ the 3B model at least extracts some predictive signal from the binary context.
 Qwen2.5-1.5B scores 1.028--1.096~bits/sym, exceeding the random ceiling at
 every level.
 No tested model comes close to gzip compression performance at these
-window sizes — a result that directly answers the AIXI question in the
-negative for this pilot: current free LLMs are poor practical substitutes
+window sizes — a result that, within this two-model pilot using a weak
+gzip baseline, suggests current free LLMs are poor practical substitutes
 for even a simple compressor on algorithmically structured sequences.
+
+The 1.5B result warrants a v2 recheck: exceedances of 0.028--0.096~bits/sym
+above the random ceiling are small enough that non-uniform invalid-token
+mass (35.9\% here) amplifying renormalization error cannot be ruled out
+without a direct base-2 entropy cross-check against the raw logits.
 
 \textbf{Finding 2 — Near-flat profiles reveal the baseline's inadequacy.}
 The spread of mean \texttt{EL\_gzip} across the four complexity levels is
