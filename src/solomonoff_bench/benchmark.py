@@ -4,14 +4,19 @@ Resumable: saves a checkpoint CSV every CHECKPOINT_EVERY sequences and
 appends to benchmark_log.jsonl. On restart, already-scored sequence_ids
 are skipped.
 
-Usage (local, CPU only for testing):
-    python -m solomonoff_bench.benchmark \\
-        --model microsoft/Phi-3-mini-4k-instruct \\
-        --dataset data/sequences_mvp.json \\
-        --output results/
+Usage — call run_benchmark() directly from Python or a notebook:
 
-Usage (Kaggle T4, see notebooks/03_benchmark_local_kaggle.ipynb):
-    Run the corresponding notebook cell.
+    from pathlib import Path
+    from solomonoff_bench.benchmark import run_benchmark
+    run_benchmark(
+        model_name="Qwen/Qwen2.5-3B",
+        dataset_path=Path("data/sequences_mvp.json"),
+        output_dir=Path("results/"),
+    )
+
+Note: there is no CLI entrypoint. The module docstring previously showed
+`python -m solomonoff_bench.benchmark --model ...` but that was aspirational
+and never implemented. Use the function API above.
 """
 
 from __future__ import annotations
