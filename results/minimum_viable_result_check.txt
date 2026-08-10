@@ -1,0 +1,15 @@
+# Minimum Viable Result Check — Week 1 EL_gzip Pilot
+
+Model: Qwen/Qwen2.5-3B
+  EL_gzip by level: 0.917, 0.959, 0.972, 0.917
+  EL_gzip spread (max-min): 0.055 bits/sym
+  Mean invalid-token mass: 0.3430
+  Verdict: PASS
+  Note: flat EL_gzip across levels is a valid finding (gzip insensitive -- need CTW)
+
+Model: Qwen/Qwen2.5-1.5B
+  EL_gzip by level: 1.028, 1.062, 1.096, 1.033
+  EL_gzip spread (max-min): 0.068 bits/sym
+  Mean invalid-token mass: 0.3590
+  Verdict: PASS
+  Note: flat EL_gzip across levels is a valid finding (gzip insensitive -- need CTW)
