@@ -1,10 +1,7 @@
-\documentclass{article}
+\documentclass[11pt,a4paper]{article}
 
-% NeurIPS 2025 style file — download neurips_2025.sty from:
-%   https://neurips.cc/Conferences/2025/PaperInformation/StyleFiles
-% or search "NeurIPS 2025" in the Overleaf template gallery.
-\usepackage[preprint]{neurips_2025}
-
+% Standard packages only — no external .sty file needed
+\usepackage[margin=1in]{geometry}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{hyperref}
@@ -17,6 +14,16 @@
 \usepackage{microtype}
 \usepackage{xcolor}
 \usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage{abstract}
+
+\titleformat{\section}{\large\bfseries}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection.}{0.5em}{}
+\renewcommand{\abstractnamefont}{\normalfont\bfseries}
+\setlength{\absleftindent}{0pt}
+\setlength{\absrightindent}{0pt}
 
 \hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue}
 
@@ -382,15 +389,14 @@ All code, data, and benchmark figures are released at
 \url{https://github.com/ajinkya-awari/solomonoff-bench}.
 
 % ----------------------------------------------------------------
-\begin{ack}
+\section*{Acknowledgements}
 % ----------------------------------------------------------------
 Compute provided by Kaggle (free T4 GPU tier).
 Models accessed via HuggingFace Transformers~\citep{wolf2020transformers}.
 Writing assistance provided by Claude (Anthropic, 2026).
 No external funding.
-\end{ack}
 
-\bibliography{references}
 \bibliographystyle{plainnat}
+\bibliography{references}
 
 \end{document}
