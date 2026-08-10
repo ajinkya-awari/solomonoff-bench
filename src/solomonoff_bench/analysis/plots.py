@@ -22,6 +22,8 @@ FIGURE_DPI = 200
 FIGURE_SIZE = (7, 4.5)
 
 MODEL_DISPLAY_NAMES = {
+    "Qwen/Qwen2.5-3B": "Qwen2.5-3B (base)",
+    "Qwen/Qwen2.5-1.5B": "Qwen2.5-1.5B (base)",
     "microsoft/Phi-3-mini-4k-instruct": "Phi-3 Mini (3.8B)",
     "meta-llama/Llama-3.2-3B-Instruct": "Llama 3.2 (3B)",
     "TinyLlama/TinyLlama-1.1B-Chat-v1.0": "TinyLlama (1.1B)",

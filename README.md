@@ -36,12 +36,20 @@ The **Solomonoff Gap (SG)** metric quantifies exactly how many bits per symbol a
 
 ## Key Results (Week 1 Pilot)
 
-| Model | Level 1 (24 bits) | Level 2 (40 bits) | Level 3 (50 bits) | Level 4 (60 bits) |
-|-------|:-----------------:|:-----------------:|:-----------------:|:-----------------:|
-| Phi-3 Mini (3.8B) | — | — | — | — |
-| Llama 3.2 (3B) | — | — | — | — |
+| Model | L1 (24 bits) | L2 (40 bits) | L3 (50 bits) | L4 (60 bits) | Neg. deltas | Invalid mass |
+|-------|:------------:|:------------:|:------------:|:------------:|:-----------:|:------------:|
+| Qwen2.5-3B (base) | 0.917 | 0.959 | 0.972 | 0.917 | 0/300 (0%) | 34.3% |
+| Qwen2.5-1.5B (base) | 1.029 | 1.062 | 1.096 | 1.034 | 0/300 (0%) | 35.9% |
 
-*Results pending Kaggle T4 benchmark run. See `notebooks/03_benchmark_local_kaggle.ipynb`.*
+EL_gzip values in bits/symbol above the incremental gzip baseline. Both models: **PASS**.
+
+**Findings:**
+- Both models waste ~1 bit/symbol over gzip on TM-generated sequences
+- Smaller model (1.5B) wastes more bits than larger (3B) — expected
+- EL_gzip spread across complexity levels is small (0.055–0.068 bits/sym), suggesting gzip is insufficiently sensitive to K — motivates CTW upgrade in Week 2
+- Zero negative gzip deltas across 600 scored sequences — incremental gzip is stable
+
+*Benchmark run on Kaggle T4. Models: ungated HuggingFace base models. See `notebooks/03_benchmark_local_kaggle.ipynb`.*
 
 ---
 
