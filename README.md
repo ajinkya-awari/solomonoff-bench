@@ -3,6 +3,7 @@
 **Empirical benchmark measuring how many extra bits per symbol LLMs waste compared to the theoretically optimal predictor (Solomonoff induction), as a function of formally computed Kolmogorov complexity.**
 
 [![arXiv](https://img.shields.io/badge/arXiv-coming--soon-b31b1b)](https://arxiv.org)
+[![Preprint PDF](https://img.shields.io/badge/Preprint-PDF-blue)](paper/preprint.pdf)
 [![HuggingFace Dataset](https://img.shields.io/badge/HF-Dataset-yellow)](https://huggingface.co/datasets/ajinkya-awari/solomonoff-bench)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-43%20passing-brightgreen)](tests/)
