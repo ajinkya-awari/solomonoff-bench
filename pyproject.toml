@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "solomonoff-bench"
+version = "0.1.0"
+description = "Empirical benchmark measuring Solomonoff Gap between LLMs and optimal prediction"
+authors = [{ name = "Ajinkya Awari", email = "ajinkyaawari.skncoe.comp@gmail.com" }]
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.1.0",
+    "transformers>=4.40.0",
+    "accelerate>=0.27.0",
+    "datasets>=2.18.0",
+    "numpy>=1.26.0",
+    "pandas>=2.2.0",
+    "matplotlib>=3.8.0",
+    "tqdm>=4.66.0",
+    "ruff>=0.4.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0.0", "pytest-cov"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
