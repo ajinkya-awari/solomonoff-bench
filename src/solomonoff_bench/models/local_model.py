@@ -23,7 +23,7 @@ from solomonoff_bench.models.tokenizer_validation import (
 def _build_prompt(prefix: str) -> str:
     """Format the binary prefix as a prompt for next-bit prediction."""
     formatted = ", ".join(prefix)
-    return "Here is a binary sequence: " + formatted + "\nThe next symbol is:"
+    return "Here is a binary sequence: " + formatted + "\nThe next symbol is: "
 
 
 class LocalHFScorer(BinarySequenceScorer):
