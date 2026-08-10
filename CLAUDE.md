@@ -6,13 +6,14 @@
 
 **Stack:** Python 3.10 · PyTorch · HuggingFace Transformers · gzip · ruff · pytest
 
-**Primary models:** `microsoft/Phi-3-mini-4k-instruct` + `meta-llama/Llama-3.2-3B-Instruct` on Kaggle T4
+**Primary models:** `Qwen/Qwen2.5-3B` + `Qwen/Qwen2.5-1.5B` (both base, ungated) on Kaggle T4
+**Rejected models:** Phi-3-mini (rope_scaling KeyError on Kaggle transformers), Llama 3.2 3B (gated — license form inaccessible), TinyLlama/Qwen-Instruct (chat-tuned, fail binary token gate)
 
 **Commands:**
 ```
 python -m pytest tests/ -v                          # run all 43 tests
 python -m solomonoff_bench.sequences.generate_sequences  # build 300-seq dataset
-python -m solomonoff_bench.benchmark --model <name> --dataset data/sequences_mvp.json --output results/
+python -m solomonoff_bench.benchmark  # NOTE: no CLI args — call run_benchmark() directly in Python
 ```
 
 ## Architecture (actual package structure)
