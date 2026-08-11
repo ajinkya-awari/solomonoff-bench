@@ -2,7 +2,7 @@
 
 **Empirical benchmark measuring how many extra bits per symbol LLMs waste compared to the theoretically optimal predictor (Solomonoff induction), as a function of formally computed Kolmogorov complexity.**
 
-[![arXiv](https://img.shields.io/badge/arXiv-coming--soon-b31b1b)](https://arxiv.org)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21884224.svg)](https://doi.org/10.5281/zenodo.21884224)
 [![Preprint PDF](https://img.shields.io/badge/Preprint-PDF-blue)](paper/preprint.pdf)
 [![HuggingFace Dataset](https://img.shields.io/badge/HF-Dataset-yellow)](https://huggingface.co/datasets/ajinkya-awari/solomonoff-bench)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
@@ -121,7 +121,9 @@ python -m pytest tests/ -v
              A Pilot Benchmark on Program-Generated Binary Sequences},
   author  = {Awari, Ajinkya},
   year    = {2026},
-  note    = {Preprint. arXiv:coming-soon}
+  doi     = {10.5281/zenodo.21884224},
+  url     = {https://zenodo.org/records/21884225},
+  note    = {Preprint. Zenodo}
 }
 ```
 
