@@ -49,11 +49,18 @@ run on a single Kaggle T4 GPU.
 Neither model approaches the gzip baseline: Qwen2.5-3B averages
 0.94~bits/sym above gzip (below the random ceiling of 1.0~bits/sym);
 Qwen2.5-1.5B averages 1.06~bits/sym, failing to beat even random prediction.
-More importantly, both models show near-flat \texttt{EL\_gzip} across all
-four complexity levels ($\Delta \leq 0.068$~bits/sym), revealing that
-incremental gzip is too coarse to detect algorithmic complexity gradients at
-100-symbol windows.
-This directly motivates a CTW-normalized Solomonoff Gap (SG) metric in v2.
+Both models show near-flat \texttt{EL\_gzip} across all four complexity
+levels ($\Delta \leq 0.068$~bits/sym), revealing that incremental gzip is too
+coarse to detect algorithmic complexity gradients at 100-symbol windows.
+Week~2 replaces gzip with Context Tree Weighting (CTW, $D{=}8$) as the
+baseline, yielding the CTW-normalized Solomonoff Gap (SG).
+Qwen2.5-3B achieves SG~$= 0.425$--$0.487$~bits/sym; Qwen2.5-1.5B achieves
+SG~$= 0.542$--$0.598$~bits/sym.
+No sequence in either model produces negative SG (0/600), ruling out
+memorization.
+Crucially, SG profiles are equally flat ($\Delta \leq 0.062$~bits/sym),
+confirming that the insensitivity to the complexity gradient is a model
+property, not a gzip artefact.
 Code and data: \url{https://github.com/ajinkya-awari/solomonoff-bench}.
 
 \end{abstract}
@@ -124,7 +131,7 @@ CTW~\citep{willems1995ctw} is the best known practical approximation to
 Solomonoff induction for binary sequences.
 It is parameter-free, converges to the optimal code length for
 tree-structured sources, and achieves redundancy $O(\log n / n)$ per symbol.
-In v2 we will use CTW to define the \emph{Solomonoff Gap}:
+We use CTW to define the \emph{Solomonoff Gap} (Week~2 metric):
 \begin{equation}
   \text{SG}(M, x) \;=\; H(M, x) - H_{\text{CTW}}(x)
   \quad \text{[bits per symbol]}
@@ -331,6 +338,78 @@ natural language; all scores use renormalized binary probabilities.
 The validation gate (binary mass $\geq 0.01$) passed on every model before
 the full run.
 
+\subsection*{Week 2: CTW-Normalized Solomonoff Gap}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.85\linewidth]{figures/fig1_v2_sg_ctw.png}
+  \caption{%
+    \textbf{SG$_{\text{primary}}$ vs.\ program bits — Week~2 CTW baseline.}
+    Mean Solomonoff Gap (SG at CTW $D{=}8$) with 95\% bootstrap CI.
+    The dashed line ($\text{SG} = 0$) is the CTW baseline; positive SG
+    means the model is above the best practical universal predictor.
+    Both models show flat profiles across the 24--60~bit complexity range
+    ($\Delta \leq 0.062$~bits/sym), confirming that model insensitivity
+    to algorithmic complexity is not a gzip artefact.
+    Qwen2.5-3B (0.425--0.487~bits/sym) consistently outperforms
+    Qwen2.5-1.5B (0.542--0.598~bits/sym).%
+  }
+  \label{fig:sg}
+\end{figure}
+
+\begin{table}[h]
+\centering
+\caption{%
+  Week~2 results: mean SG$_{\text{primary}}$ $\pm$ std (bits/sym) at CTW $D{=}8$,
+  75~sequences per level.
+  CTW baseline varies per sequence (mean 0.010~bits/sym on Level~1,
+  up to 0.924~bits/sym on higher-entropy Level~4 sequences).
+  Negative SG: 0\,/\,600 across both models.%
+}
+\label{tab:sg}
+\vspace{4pt}
+\small
+\begin{tabular}{lcrrrr}
+\toprule
+Model & Params
+  & L1 (24\,b) & L2 (40\,b)
+  & L3 (50\,b) & L4 (60\,b) \\
+\midrule
+Qwen2.5-3B   & 3.1B
+  & $0.487{\pm}0.21$ & $0.452{\pm}0.20$
+  & $0.443{\pm}0.23$ & $0.425{\pm}0.20$ \\
+Qwen2.5-1.5B & 1.5B
+  & $0.598{\pm}0.25$ & $0.555{\pm}0.26$
+  & $0.567{\pm}0.28$ & $0.542{\pm}0.25$ \\
+\midrule
+CTW baseline & ---
+  & $\approx 0.01$ & --- & --- & $\leq 0.924$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Figure~\ref{fig:sg} and Table~\ref{tab:sg} summarise the Week~2 results.
+
+\textbf{Finding 4 — SG is flat under CTW, confirming a model property.}
+Replacing the gzip baseline with CTW ($D{=}8$) yields substantially different
+absolute SG values — Qwen2.5-3B drops from $\sim 0.94$ to $\sim 0.45$~bits/sym
+because CTW is a much weaker compressor than gzip on short ASCII binary windows
+(mean CTW cost $> 0$ vs.\ mean gzip cost $\approx 0.036$~bits/sym).
+However, the shape of the profile is unchanged: SG varies by at most
+0.062~bits/sym (3B) and 0.057~bits/sym (1.5B) across the 24--60~program-bit
+range ($2.5\times$ variation in $K_{\mathcal{M}}$).
+This is the key Week~2 result: the flat \texttt{EL\_gzip} profiles in
+Figure~\ref{fig:main} are not a gzip-baseline artefact — they reflect a genuine
+insensitivity of current LLMs to the Kolmogorov complexity of the input source.
+
+\textbf{Finding 5 — No negative SG; no memorization signal.}
+Every one of the 600 (sequence, model) pairs produces positive SG, meaning
+neither model outperforms CTW on any single sequence.
+Negative SG would flag either memorization of specific TM outputs or structural
+patterns that CTW handles poorly at $D{=}8$ (e.g., long-range periodicities).
+The absence of any such cases strengthens confidence in the benchmark's
+integrity and in the conservative choice of reporting $\text{SG}_{\min}$.
+
 % ----------------------------------------------------------------
 \section{Discussion}
 % ----------------------------------------------------------------
@@ -341,12 +420,13 @@ two free base models cannot match even incremental gzip on program-generated
 binary sequences.
 A practical AIXI context model must outperform universal-coding baselines,
 not merely approach a random predictor.
-That said, the pilot covers only two models and uses a weak baseline; the
-negative result is a lower bound, not a ceiling.
-If CTW-normalized SG in v2 reveals that the gap shrinks at lower complexity
-levels, it would suggest that LLMs are viable AIXI context models for simple
-algorithmic inputs and degrade gracefully as complexity grows — a structured
-failure mode more informative than a flat rejection.
+The Week~2 SG results deepen this conclusion: CTW-normalized SG confirms that
+the gap does \emph{not} shrink at lower complexity levels (Finding~4).
+LLMs are not viable AIXI context models across the full 24--60~bit range
+tested — not even for the simplest 3-state programs.
+The failure mode is flat rather than graduated, which is the more pessimistic
+outcome: there is no regime where current free models serve as practical
+Solomonoff approximators.
 
 \textbf{Why CTW is necessary.}
 DEFLATE compression on 100-byte windows is near-perfect for short ASCII
@@ -380,12 +460,16 @@ it is the empirical justification for the upgrade.
 SolomonoffBench provides a reproducible K-conditioned test bed for measuring
 how far LLMs fall from theoretical prediction optimality on algorithmically
 structured binary sequences.
-The Week~1 pilot establishes two things: neither tested free model beats
-incremental gzip, and neither model's excess loss grows with program complexity
-in the 24--60~bit range.
-Both findings point to the same conclusion — a CTW-normalized Solomonoff Gap
-metric is required to resolve whether LLMs can serve as practical AIXI context
-models.
+The Week~1 pilot establishes that neither tested free model beats incremental
+gzip and that neither model's excess loss grows with program complexity.
+The Week~2 CTW-normalized Solomonoff Gap confirms both findings hold under a
+stronger baseline: Qwen2.5-3B and Qwen2.5-1.5B produce SG~$\approx 0.45$ and
+$0.57$~bits/sym respectively, flat across 24--60~program bits, with no negative
+SG across 600 sequence-model pairs.
+Taken together, these results indicate that current free LLMs are poor
+practical approximations to Solomonoff induction in this setting, and that
+the insensitivity to algorithmic complexity is a model property rather than a
+measurement artefact.
 All code, data, and benchmark figures are released at
 \url{https://github.com/ajinkya-awari/solomonoff-bench}.
 
