@@ -25,7 +25,7 @@ A Pilot Benchmark on Program-Generated Binary Sequences}
 
 \author{%
   Ajinkya Awari \\
-  SKNCOE, Pune, India \\
+  Independent Researcher, Pune, India \\
   \texttt{ajinkyaawari.skncoe.comp@gmail.com}
 }
 
@@ -97,10 +97,10 @@ let alone from the theoretical Solomonoff bound.
         Direct forward-pass logit scoring for HuggingFace base models on
         Kaggle T4 GPUs, with mandatory tokenizer validation and negative-delta
         logging — fully reproducible at zero compute cost.
-  \item \textbf{Pilot findings.}
-        Neither tested model beats gzip; only the 3B model beats random
-        prediction. Both models are insensitive to the complexity gradient,
-        establishing the need for a CTW-normalized baseline in v2.
+  \item \textbf{Pilot and CTW-normalized findings.}
+        Neither tested model beats gzip or CTW; SG is flat and non-negative
+        (0/600) across all complexity levels, indicating a genuine model
+        limitation rather than a baseline artefact (Section~\ref{sec:results}).
 \end{itemize}
 
 % ----------------------------------------------------------------
@@ -239,6 +239,7 @@ Both models clear this gate (valid binary mass: 65.4\%~for~3B,
 
 % ----------------------------------------------------------------
 \section{Results}
+\label{sec:results}
 % ----------------------------------------------------------------
 
 \begin{figure}[t]
@@ -254,7 +255,8 @@ Both models clear this gate (valid binary mass: 65.4\%~for~3B,
     gzip); Qwen2.5-1.5B exceeds the random ceiling at all levels.
     The near-flat profiles ($\Delta \leq 0.068$~bits/sym across 24--60~program
     bits) show that incremental gzip is too coarse to discriminate complexity
-    levels in this range, motivating the CTW-normalized SG in v2.%
+    levels in this range, motivating the CTW-normalized SG computed in
+    Section~\ref{sec:results} (Figure~\ref{fig:sg}).%
   }
   \label{fig:main}
 \end{figure}
@@ -306,10 +308,9 @@ window sizes — a result that, within this two-model pilot using a weak
 gzip baseline, suggests current free LLMs are poor practical substitutes
 for even a simple compressor on algorithmically structured sequences.
 
-The 1.5B result warrants a v2 recheck: exceedances of 0.028--0.096~bits/sym
-above the random ceiling are small enough that non-uniform invalid-token
-mass (35.9\% here) amplifying renormalization error cannot be ruled out
-without a direct base-2 entropy cross-check against the raw logits.
+The Week~2 SG recheck (Section~\ref{sec:results}) confirms the 1.5B
+exceedances are genuine: SG of 0.542--0.598~bits/sym rules out
+renormalization error as the cause.
 
 \textbf{Finding 2 — Near-flat profiles reveal the baseline's inadequacy.}
 The spread of mean \texttt{EL\_gzip} across the four complexity levels is
