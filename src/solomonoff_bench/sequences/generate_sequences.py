@@ -44,6 +44,12 @@ COMPLEXITY_LEVELS = {
 MAX_ATTEMPTS_PER_LEVEL = 500_000
 
 OUTPUT_CONVENTION = "output-transducer: written symbol emitted at each transition"
+_REPO_ROOT = Path(__file__).resolve().parents[3]
+
+
+def _default_output_path() -> Path:
+    """Return the MVP dataset path within this repository."""
+    return _REPO_ROOT / "data" / "sequences_mvp.json"
 
 
 def generate_level(
@@ -238,8 +244,7 @@ def validate_dataset(records: list[dict]) -> None:
 
 
 if __name__ == "__main__":
-    repo_root = Path(__file__).resolve().parents[4]
-    output_path = repo_root / "data" / "sequences_mvp.json"
+    output_path = _default_output_path()
 
     records = generate_mvp_dataset(output_path=output_path, verbose=True)
     validate_dataset(records)
