@@ -4,6 +4,8 @@
 
 **Repo:** `E:\application\MS CS\solomonoff-bench\` — installable Python package
 
+**Current handoff:** Read `IMPLEMENTATION_AUDIT_2026-08-13.md` before making changes. It records the five completed local fixes, verification evidence, untouched working-tree items, and the remaining Project 00 work.
+
 **Stack:** Python 3.10 · PyTorch · HuggingFace Transformers · gzip · ruff · pytest
 
 **Primary models:** `Qwen/Qwen2.5-3B` + `Qwen/Qwen2.5-1.5B` (both base, ungated) on Kaggle T4
