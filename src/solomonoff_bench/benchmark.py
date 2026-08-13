@@ -1,8 +1,8 @@
 """Main benchmark runner for Week 1 EL_gzip pilot.
 
 Resumable: saves a checkpoint CSV every CHECKPOINT_EVERY sequences and
-appends to benchmark_log.jsonl. On restart, already-scored sequence_ids
-are skipped.
+appends to benchmark_log.jsonl. On restart, already-scored sequence/config
+combinations for the requested model are skipped.
 
 Usage — call run_benchmark() directly from Python or a notebook:
 
@@ -22,10 +22,12 @@ and never implemented. Use the function API above.
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 import math
 import os
 import time
+import warnings
 from pathlib import Path
 from typing import Optional
 
@@ -34,15 +36,60 @@ CONTEXT_LEN = 100
 PREDICT_LEN = 100
 
 
+def _dataset_sha256(dataset_path: Path) -> str:
+    """Return the SHA-256 digest of the exact dataset file used for a run."""
+    digest = hashlib.sha256()
+    with open(dataset_path, "rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _completion_key(
+    sequence_id: str,
+    model_name: str,
+    dataset_sha256: str,
+    context_len: int,
+    predict_len: int,
+) -> str:
+    """Build a stable, model- and configuration-scoped completion key."""
+    return json.dumps(
+        {
+            "sequence_id": sequence_id,
+            "model": model_name,
+            "dataset_sha256": dataset_sha256,
+            "context_len": context_len,
+            "predict_len": predict_len,
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def load_dataset(dataset_path: Path) -> list[dict]:
     with open(dataset_path, encoding="utf-8") as f:
         data = json.load(f)
     return data["records"]
 
 
-def load_completed_ids(log_path: Path) -> set[str]:
-    """Read already-completed sequence_ids from benchmark_log.jsonl."""
+def load_completed_ids(
+    log_path: Path,
+    *,
+    model_name: str,
+    dataset_sha256: str,
+    context_len: int,
+    predict_len: int,
+) -> set[str]:
+    """Read completed sequence IDs matching the requested run configuration.
+
+    Current entries must carry a completion key (or equivalent metadata) for
+    exact matching. Older Week 1/2 entries predate those fields; they remain
+    resumable only when their recorded model matches, with an explicit warning
+    because their dataset and window cannot be verified retrospectively.
+    """
     completed: set[str] = set()
+    legacy_model_only: set[str] = set()
+    legacy_unscoped: set[str] = set()
     if not log_path.exists():
         return completed
     with open(log_path, encoding="utf-8") as f:
@@ -52,10 +99,62 @@ def load_completed_ids(log_path: Path) -> set[str]:
                 continue
             try:
                 entry = json.loads(line)
-                if entry.get("status") == "done":
-                    completed.add(entry["sequence_id"])
+                if entry.get("status") != "done":
+                    continue
+                sequence_id = entry.get("sequence_id")
+                if not isinstance(sequence_id, str):
+                    continue
+
+                expected_key = _completion_key(
+                    sequence_id=sequence_id,
+                    model_name=model_name,
+                    dataset_sha256=dataset_sha256,
+                    context_len=context_len,
+                    predict_len=predict_len,
+                )
+                if entry.get("completion_key") == expected_key:
+                    completed.add(sequence_id)
+                    continue
+
+                metadata_fields = {
+                    "model": entry.get("model"),
+                    "dataset_sha256": entry.get("dataset_sha256"),
+                    "context_len": entry.get("context_len"),
+                    "predict_len": entry.get("predict_len"),
+                }
+                if all(value is not None for value in metadata_fields.values()):
+                    if (
+                        metadata_fields["model"] == model_name
+                        and metadata_fields["dataset_sha256"] == dataset_sha256
+                        and metadata_fields["context_len"] == context_len
+                        and metadata_fields["predict_len"] == predict_len
+                    ):
+                        completed.add(sequence_id)
+                    continue
+
+                # Legacy entries contain model but no dataset/window metadata.
+                if entry.get("model") == model_name:
+                    completed.add(sequence_id)
+                    legacy_model_only.add(sequence_id)
+                elif "model" not in entry:
+                    legacy_unscoped.add(sequence_id)
             except json.JSONDecodeError:
                 continue
+
+    if legacy_model_only:
+        warnings.warn(
+            f"Reusing {len(legacy_model_only)} legacy completion entries matched "
+            "by model only; dataset/window metadata was unavailable.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+    if legacy_unscoped:
+        warnings.warn(
+            f"Ignoring {len(legacy_unscoped)} legacy completion entries without "
+            "a model; they cannot be safely attributed to this run.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
     return completed
 
 
@@ -92,7 +191,21 @@ def run_benchmark(
     checkpoint_path = output_dir / ("checkpoint_" + model_slug + ".json")
 
     records = load_dataset(dataset_path)
-    completed_ids = load_completed_ids(log_path)
+    dataset_sha256 = _dataset_sha256(dataset_path)
+    completed_ids = load_completed_ids(
+        log_path,
+        model_name=model_name,
+        dataset_sha256=dataset_sha256,
+        context_len=context_len,
+        predict_len=predict_len,
+    )
+
+    run_metadata = {
+        "model": model_name,
+        "dataset_sha256": dataset_sha256,
+        "context_len": context_len,
+        "predict_len": predict_len,
+    }
 
     if verbose:
         print("Model:", model_name)
@@ -109,7 +222,7 @@ def run_benchmark(
     toy_seqs = [r["sequence"] for r in records[:5]]
     gate_result = scorer.validate_toy_sequences(toy_seqs)
     append_log(log_path, {"event": "tokenizer_gate", "result": gate_result,
-                           "model": model_name})
+                          **run_metadata})
     if verbose:
         print("Tokenizer gate passed.")
         print("  Mean valid binary mass:", round(gate_result["mean_valid_binary_mass"], 4))
@@ -174,7 +287,14 @@ def run_benchmark(
         append_log(log_path, {
             "status": "done",
             "sequence_id": sid,
-            "model": model_name,
+            "completion_key": _completion_key(
+                sequence_id=sid,
+                model_name=model_name,
+                dataset_sha256=dataset_sha256,
+                context_len=context_len,
+                predict_len=predict_len,
+            ),
+            **run_metadata,
             "el_gzip": el["el_gzip"],
             "h_gzip_is_negative": el["h_gzip_is_negative"],
         })
@@ -200,8 +320,7 @@ def run_benchmark(
 
     # Final gzip diagnostics
     gzip_diag = gzip_baseline.diagnostics()
-    append_log(log_path, {"event": "gzip_diagnostics", "model": model_name,
-                           **gzip_diag})
+    append_log(log_path, {"event": "gzip_diagnostics", **run_metadata, **gzip_diag})
 
     if verbose:
         elapsed = time.time() - t0
