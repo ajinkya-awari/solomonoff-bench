@@ -6,8 +6,10 @@ Run with: python -m pytest tests/test_new_generators.py -v
 from __future__ import annotations
 
 import math
-import sys
 import os
+import subprocess
+import sys
+from pathlib import Path
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
@@ -232,6 +234,30 @@ class TestCanaryFixedPatterns:
 
 
 class TestCanaryRandomEntropy:
+    def test_canary_generation_is_stable_across_python_hash_seeds(self):
+        """String hash randomization must not alter seeded canary records."""
+        script = (
+            "import hashlib, json; "
+            "from solomonoff_bench.sequences.generate_canary_sequences "
+            "import generate_canary_sequences; "
+            "records = generate_canary_sequences(base_seed=5000, verbose=False); "
+            "payload = json.dumps(records, sort_keys=True, separators=(',', ':')).encode(); "
+            "print(hashlib.sha256(payload).hexdigest())"
+        )
+        env = os.environ.copy()
+        env["PYTHONPATH"] = str(Path(__file__).resolve().parents[1] / "src")
+        hashes = []
+        for hash_seed in ("1", "2"):
+            env["PYTHONHASHSEED"] = hash_seed
+            hashes.append(
+                subprocess.check_output(
+                    [sys.executable, "-c", script], env=env, text=True
+                ).strip()
+            )
+        assert hashes[0] == hashes[1], (
+            "Canary output changed across PYTHONHASHSEED values: " + repr(hashes)
+        )
+
     def test_rand_canary_entropy_near_1(self):
         """RAND canary should have empirical entropy close to 1.0 bit/symbol."""
         records = generate_canary_sequences(base_seed=5000, verbose=False)
