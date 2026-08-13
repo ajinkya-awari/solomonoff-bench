@@ -40,6 +40,7 @@ Output format matches sequences_mvp.json exactly, with additional fields:
 
 from __future__ import annotations
 
+import hashlib
 import random
 from pathlib import Path
 
@@ -64,6 +65,13 @@ CANARY_TYPES: list[str] = [
 # Canary types that can produce 75 globally unique sequences.
 # All others are "fixed-pattern" and intentionally repeat sequence content.
 _UNIQUE_TYPES: frozenset[str] = frozenset({"RAND", "LOW0", "LOW1", "PRBS15"})
+
+
+def _stable_canary_seed(base_seed: int, canary_type: str) -> int:
+    """Return a process-independent seed for a canary type."""
+    digest = hashlib.sha256(canary_type.encode("utf-8")).digest()
+    stable_offset = int.from_bytes(digest[:8], byteorder="big") % 100_000
+    return base_seed + stable_offset
 
 
 # ── PRBS helpers (Fibonacci LFSR) ─────────────────────────────────────────────
@@ -202,7 +210,7 @@ def generate_canary_sequences(
         # For uniqueness-enforced types, also track within-type
         unique_seen_in_type: set[str] = set()
 
-        rng = random.Random(base_seed + hash(canary_type) % 100_000)
+        rng = random.Random(_stable_canary_seed(base_seed, canary_type))
         index = 0
 
         is_unique_type = canary_type in _UNIQUE_TYPES
