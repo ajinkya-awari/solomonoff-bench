@@ -31,7 +31,10 @@ AIXI requires Solomonoff induction as its predictive component — but Solomonof
 The **Solomonoff Gap (SG)** metric quantifies exactly how many bits per symbol an LLM wastes over the best practical Solomonoff approximator (CTW), as a function of formally computed Kolmogorov complexity K.
 
 **Week 1 pilot:** 300 TM-generated binary sequences, 4 complexity levels, 2 local models, gzip-normalized `EL_gzip` metric.  
-**Week 2+:** CTW-normalized `SG`, full 2,400-sequence dataset, arXiv paper.
+**Week 2 (current):** CTW-normalized `SG` on the 300 TM-generated sequences only
+(600 model-sequence pairs across two models). The extended 2,400-sequence dataset
+(TM + CA + LFSR + canary) is generated and available, but SG computation on it is
+future work planned for Week 3.
 
 ---
 
