@@ -33,3 +33,5 @@ Thumbs.db
 
 # Local AI tooling — not part of the public project
 .claude/
+bash.exe.stackdump
+*.stackdump
