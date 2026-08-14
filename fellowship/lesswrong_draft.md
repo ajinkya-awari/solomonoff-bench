@@ -91,7 +91,7 @@ Everything is free and public:
 - Paper source (NeurIPS 2026 format): https://github.com/ajinkya-awari/solomonoff-bench/blob/master/paper/main.tex
 - Runs on a free Kaggle T4 GPU notebook, zero API cost
 
-The full 4-page preprint is linked in the repo. arXiv submission is in progress.
+The full 4-page preprint is linked in the repo. Preprint published on Zenodo: https://doi.org/10.5281/zenodo.21884224 — arXiv submission pending endorsement.
 
 Week 2 (CTW implementation + full SG results) will be posted here when complete.
 
