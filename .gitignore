@@ -13,9 +13,10 @@ data/chroma_db/
 *.pt
 *.bin
 
-# Results — commit only final CSVs, not checkpoints
+# Results — commit only final CSVs, not checkpoints or intermediates
 results/checkpoint_*.json
 results/benchmark_log.jsonl
+results/el_gzip_results.csv
 
 # Environment
 .env
