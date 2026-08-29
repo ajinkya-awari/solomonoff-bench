@@ -6,7 +6,7 @@
 [![Preprint PDF](https://img.shields.io/badge/Preprint-PDF-blue)](paper/preprint.pdf)
 [![HuggingFace Dataset](https://img.shields.io/badge/HF-Dataset-yellow)](https://huggingface.co/datasets/ajinkya-awari/solomonoff-bench)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-43%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-93%20passing-brightgreen)](tests/)
 [![GitHub](https://img.shields.io/badge/GitHub-ajinkya--awari%2Fsolomonoff--bench-181717?logo=github)](https://github.com/ajinkya-awari/solomonoff-bench)
 
 ---
@@ -78,7 +78,7 @@ solomonoff-bench/
 │   ├── el_gzip_results.csv
 │   ├── figures/fig1_mvp_el_gzip.png
 │   └── minimum_viable_result_check.txt
-└── tests/                               ← 43 tests, all passing
+└── tests/                               ← 93 tests, all passing
 ```
 
 ---
