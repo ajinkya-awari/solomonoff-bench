@@ -3,7 +3,7 @@
 **Empirical benchmark measuring how many extra bits per symbol LLMs waste compared to the theoretically optimal predictor (Solomonoff induction), as a function of formally computed Kolmogorov complexity.**
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21884224.svg)](https://doi.org/10.5281/zenodo.21884224)
-[![Preprint PDF](https://img.shields.io/badge/Preprint-PDF-blue)](paper/preprint.pdf)
+[![Preprint PDF](https://img.shields.io/badge/Preprint-PDF-blue)](paper/Preprint.pdf)
 [![HuggingFace Dataset](https://img.shields.io/badge/HF-Dataset-yellow)](https://huggingface.co/datasets/ajinkya-awari/solomonoff-bench)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-93%20passing-brightgreen)](tests/)
@@ -57,6 +57,27 @@ EL_gzip values in bits/symbol above the incremental gzip baseline. Both models: 
 
 ---
 
+## Key Results (Week 2 — CTW-Normalized Solomonoff Gap)
+
+SG computed at CTW depths D=4, 8, 12 on the 300 TM-generated sequences × 2 models (600 model-sequence pairs). Full dataset SG (2,400 sequences) is future work.
+
+| Model | SG D=4 | SG D=8 | SG D=12 | Neg. SG |
+|-------|:------:|:------:|:-------:|:-------:|
+| Qwen2.5-3B | 0.425–0.454 bps | 0.448–0.471 bps | 0.461–0.487 bps | 0/600 (0%) |
+| Qwen2.5-1.5B | 0.542–0.561 bps | 0.563–0.579 bps | 0.578–0.598 bps | 0/600 (0%) |
+
+SG values in bits/symbol above the CTW baseline. Larger model has smaller SG — closer to the Solomonoff limit.
+
+**Findings:**
+- Both models show a consistent positive Solomonoff Gap — neither approximates universal prediction
+- SG increases with CTW depth (deeper context → tighter bound → larger gap)
+- 3B model is measurably closer to the Solomonoff limit than 1.5B (lower SG by ~0.11–0.12 bps)
+- Zero negative SG across all 600 pairs — CTW baseline is valid and stable
+
+*CTW computation run locally via `scripts/compute_sg.py`. See `results/sg_ctw_results.csv`.*
+
+---
+
 ## Repository Structure
 
 ```
@@ -73,11 +94,22 @@ solomonoff-bench/
 │   ├── 02_validate_tokenizers.ipynb
 │   ├── 03_benchmark_local_kaggle.ipynb   ← run on Kaggle T4
 │   └── 04_analysis_and_plots.ipynb
-├── data/sequences_mvp.json              ← gitignored (300 sequences)
+├── data/
+│   ├── sequences_mvp.json               ← gitignored (300 TM sequences)
+│   └── sequences_full.json              ← 2,400 sequences (TM + CA + LFSR + canary)
+├── scripts/
+│   ├── compute_sg.py                    ← Week 2 CTW/SG computation
+│   └── build_full_dataset.py
 ├── results/
-│   ├── el_gzip_results.csv
-│   ├── figures/fig1_mvp_el_gzip.png
-│   └── minimum_viable_result_check.txt
+│   ├── el_gzip_Qwen--Qwen2.5-3B.csv    ← 300 rows, Week 1 pilot
+│   ├── el_gzip_Qwen--Qwen2.5-1.5B.csv  ← 300 rows, Week 1 pilot
+│   ├── el_gzip_results_combined.csv     ← 600 rows (both models)
+│   ├── sg_ctw_results.csv               ← 600 rows, Week 2 CTW/SG
+│   ├── minimum_viable_result_check.txt  ← PASS verdict both models
+│   ├── benchmark_log.jsonl              ← gitignored; raw GPU log
+│   └── figures/
+│       ├── fig1_mvp_el_gzip.png         ← Week 1 pilot figure
+│       └── fig1_v2_sg_ctw.png           ← Week 2 SG figure
 └── tests/                               ← 93 tests, all passing
 ```
 
