@@ -32,7 +32,11 @@ venv/
 .DS_Store
 Thumbs.db
 
-# Local AI tooling — not part of the public project
+# Local tooling — not part of the public project
 .claude/
 bash.exe.stackdump
 *.stackdump
+
+# Project planning and internal audit files
+CLAUDE.md
+IMPLEMENTATION_AUDIT_2026-08-13.md
